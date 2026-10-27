@@ -1,3 +1,5 @@
+import 'city.dart';
+
 /// Presidente de Colombia (endpoint `/President`).
 class President {
   final int id;
@@ -12,6 +14,9 @@ class President {
   final String description;
   final int? cityId;
 
+  /// Ciudad de nacimiento. Solo llega en `/President/{id}`; en el listado es `null`.
+  final City? city;
+
   const President({
     required this.id,
     required this.image,
@@ -22,6 +27,7 @@ class President {
     required this.politicalParty,
     required this.description,
     this.cityId,
+    this.city,
   });
 
   String get fullName => '$name $lastName'.trim();
@@ -29,6 +35,7 @@ class President {
   String get period => '$startPeriodDate — ${endPeriodDate ?? 'Actualidad'}';
 
   factory President.fromJson(Map<String, dynamic> json) {
+    final city = json['city'];
     return President(
       id: (json['id'] as num).toInt(),
       image: json['image'] as String? ?? '',
@@ -39,6 +46,7 @@ class President {
       politicalParty: json['politicalParty'] as String? ?? '',
       description: json['description'] as String? ?? '',
       cityId: (json['cityId'] as num?)?.toInt(),
+      city: city is Map<String, dynamic> ? City.fromJson(city) : null,
     );
   }
 
@@ -52,5 +60,6 @@ class President {
         'politicalParty': politicalParty,
         'description': description,
         'cityId': cityId,
+        'city': city?.toJson(),
       };
 }

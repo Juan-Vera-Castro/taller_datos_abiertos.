@@ -59,6 +59,25 @@ void main() {
       expect(p.period, '2022-08-07 — Actualidad');
       expect(President.fromJson(p.toJson()).endPeriodDate, isNull);
     });
+
+    test('lee la ciudad de nacimiento cuando viene en el detalle', () {
+      final p = President.fromJson({
+        'id': 3,
+        'name': 'Rafael',
+        'lastName': 'Nuñez Moledo',
+        'startPeriodDate': '1887-06-04',
+        'cityId': 210,
+        'city': {
+          'id': 210,
+          'name': 'Cartagena',
+          'description': 'Capital de Bolívar',
+          'population': 1028736,
+          'presidents': [null],
+        },
+      });
+      expect(p.city?.name, 'Cartagena');
+      expect(President.fromJson(p.toJson()).city?.population, 1028736);
+    });
   });
 
   group('TouristicAttraction', () {

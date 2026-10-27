@@ -72,10 +72,31 @@ class _PresidentDetail extends StatelessWidget {
               label: 'Partido político',
               value: Formatters.text(p.politicalParty)),
           InfoTile(
+              icon: Icons.place_outlined,
+              label: 'Ciudad de nacimiento',
+              value: p.city?.name ?? 'Sin dato'),
+          InfoTile(
               icon: Icons.tag,
-              label: 'ID presidente / ciudad de origen',
+              label: 'ID presidente / ciudad',
               value: '${p.id} / ${p.cityId ?? 'Sin dato'}'),
         ]),
+        if (p.city != null && p.city!.description.isNotEmpty) ...[
+          DetailSectionTitle('Sobre ${p.city!.name}'),
+          Text(p.city!.description, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 12),
+          InfoGrid(tiles: [
+            InfoTile(
+                icon: Icons.groups_outlined,
+                label: 'Población',
+                value: Formatters.number(p.city!.population)),
+            InfoTile(
+                icon: Icons.square_foot,
+                label: 'Superficie',
+                value: p.city!.surface == null
+                    ? 'Sin dato'
+                    : '${Formatters.number(p.city!.surface)} km²'),
+          ]),
+        ],
         const DetailSectionTitle('Biografía'),
         Text(Formatters.text(p.description), style: theme.textTheme.bodyLarge),
       ],
