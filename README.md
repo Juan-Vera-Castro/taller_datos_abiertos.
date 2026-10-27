@@ -34,7 +34,7 @@ API Colombia es una API REST pública y gratuita, sin autenticación, que expone
 | # | Endpoint | Qué contiene | Listado (`GET`) | Detalle (`GET`) |
 |---|----------|--------------|-----------------|-----------------|
 | 1 | **Department** | Los departamentos de Colombia: descripción, población, superficie, número de municipios, indicativo telefónico y ciudad capital. | `/Department` | `/Department/{id}` |
-| 2 | **President** | Presidentes de Colombia: foto, nombre, periodo de gobierno, partido político y biografía. | `/President` | `/President/{id}` |
+| 2 | **President** | Presidentes de Colombia: foto, nombre, periodo de gobierno, partido político, biografía y ciudad de nacimiento (solo en el detalle). | `/President` | `/President/{id}` |
 | 3 | **TouristicAttraction** | Atractivos turísticos: descripción, imágenes, coordenadas y ciudad. | `/TouristicAttraction` | `/TouristicAttraction/{id}` |
 | 4 | **TypicalDish** | Platos típicos: descripción, ingredientes, imagen y departamento de origen. | `/TypicalDish` | `/TypicalDish/{id}` |
 
@@ -296,7 +296,7 @@ El `.env` está versionado a propósito porque solo contiene la URL pública de 
 
 ```bash
 flutter analyze   # análisis estático (sin problemas)
-flutter test      # 31 pruebas
+flutter test      # 32 pruebas
 ```
 
 | Archivo | Qué verifica |
