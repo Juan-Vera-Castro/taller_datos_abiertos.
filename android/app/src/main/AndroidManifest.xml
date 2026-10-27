@@ -1,6 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Necesario para consumir API Colombia y descargar imagenes. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="taller_datos_abiertos"
+        android:label="API Colombia"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
