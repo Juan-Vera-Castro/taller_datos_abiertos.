@@ -13,13 +13,17 @@ class EnvConfig {
 
   /// URL base de API Colombia, sin barra final.
   static String get apiBaseUrl {
-    final url = dotenv.maybeGet('API_BASE_URL') ?? _defaultBaseUrl;
+    final url = _value('API_BASE_URL') ?? _defaultBaseUrl;
     return url.endsWith('/') ? url.substring(0, url.length - 1) : url;
   }
 
   /// Tiempo máximo de espera para cada petición HTTP.
   static Duration get apiTimeout {
-    final seconds = int.tryParse(dotenv.maybeGet('API_TIMEOUT_SECONDS') ?? '');
+    final seconds = int.tryParse(_value('API_TIMEOUT_SECONDS') ?? '');
     return Duration(seconds: seconds ?? _defaultTimeoutSeconds);
   }
+
+  /// Si el `.env` no se cargó (p. ej. en pruebas) se usan los valores por defecto.
+  static String? _value(String key) =>
+      dotenv.isInitialized ? dotenv.maybeGet(key) : null;
 }
