@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../views/attractions/attraction_detail_view.dart';
+import '../views/attractions/attraction_list_view.dart';
+import '../views/dashboard_view.dart';
+import '../views/departments/department_detail_view.dart';
+import '../views/departments/department_list_view.dart';
+import '../views/dishes/dish_detail_view.dart';
+import '../views/dishes/dish_list_view.dart';
 import '../views/not_found_view.dart';
+import '../views/presidents/president_detail_view.dart';
+import '../views/presidents/president_list_view.dart';
 import 'app_routes.dart';
 
 typedef _DetailBuilder = Widget Function(int id);
@@ -17,35 +26,35 @@ GoRouter createAppRouter({String initialLocation = AppRoutes.homePath}) {
       GoRoute(
         path: AppRoutes.homePath,
         name: AppRoutes.home,
-        builder: (context, state) => const _PendingView('Dashboard'),
+        builder: (context, state) => const DashboardView(),
         routes: [
           _section(
             path: 'departments',
             name: AppRoutes.departments,
             detailName: AppRoutes.departmentDetail,
-            list: const _PendingView('Departamentos'),
-            detail: (id) => _PendingView('Departamento $id'),
+            list: const DepartmentListView(),
+            detail: (id) => DepartmentDetailView(id: id),
           ),
           _section(
             path: 'presidents',
             name: AppRoutes.presidents,
             detailName: AppRoutes.presidentDetail,
-            list: const _PendingView('Presidentes'),
-            detail: (id) => _PendingView('Presidente $id'),
+            list: const PresidentListView(),
+            detail: (id) => PresidentDetailView(id: id),
           ),
           _section(
             path: 'attractions',
             name: AppRoutes.attractions,
             detailName: AppRoutes.attractionDetail,
-            list: const _PendingView('Atractivos turísticos'),
-            detail: (id) => _PendingView('Atractivo $id'),
+            list: const AttractionListView(),
+            detail: (id) => AttractionDetailView(id: id),
           ),
           _section(
             path: 'dishes',
             name: AppRoutes.dishes,
             detailName: AppRoutes.dishDetail,
-            list: const _PendingView('Platos típicos'),
-            detail: (id) => _PendingView('Plato $id'),
+            list: const DishListView(),
+            detail: (id) => DishDetailView(id: id),
           ),
         ],
       ),
@@ -81,19 +90,4 @@ GoRoute _section({
       ),
     ],
   );
-}
-
-// TODO(paso-7): reemplazar por las vistas reales de Dashboard, Listado y Detalle.
-class _PendingView extends StatelessWidget {
-  final String title;
-
-  const _PendingView(this.title);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(child: Text(title)),
-    );
-  }
 }
