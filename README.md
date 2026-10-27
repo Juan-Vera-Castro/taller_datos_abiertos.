@@ -140,6 +140,7 @@ La aplicación está organizada por **capas**. Cada capa solo conoce a la que es
 │   ├── services/
 │   │   ├── api_client.dart      # GET genérico: timeout, UTF‑8 y manejo de errores
 │   │   ├── api_exception.dart   # Error con mensaje listo para el usuario
+│   │   ├── image_service.dart   # Descarga de imágenes con reintentos y límite de concurrencia
 │   │   ├── department_service.dart
 │   │   ├── president_service.dart
 │   │   ├── touristic_attraction_service.dart
@@ -168,6 +169,7 @@ La aplicación está organizada por **capas**. Cada capa solo conoce a la que es
 └── test/
     ├── models_test.dart
     ├── services_test.dart
+    ├── image_service_test.dart
     ├── router_test.dart
     └── views_test.dart
 ```
@@ -296,7 +298,7 @@ El `.env` está versionado a propósito porque solo contiene la URL pública de 
 
 ```bash
 flutter analyze   # análisis estático (sin problemas)
-flutter test      # 32 pruebas
+flutter test      # 37 pruebas
 ```
 
 | Archivo | Qué verifica |
@@ -304,6 +306,7 @@ flutter test      # 32 pruebas
 | `test/models_test.dart` | `fromJson`/`toJson` de los 4 modelos, campos nulos y objetos anidados |
 | `test/services_test.dart` | URLs de cada endpoint, decodificación UTF‑8 y errores 404, 500, red, timeout y formato (con `MockClient`) |
 | `test/router_test.dart` | Las 9 rutas, el paso del parámetro `id`, ids no numéricos y rutas desconocidas |
+| `test/image_service_test.dart` | Reintentos ante 429, paso a la siguiente URL, respuestas que no son imagen, caché y límite de descargas simultáneas |
 | `test/views_test.dart` | Estados cargando / error / éxito, botón Reintentar, búsqueda, detalle por id, navegación desde el dashboard, URLs de imágenes y formatos |
 
 ---
@@ -312,7 +315,14 @@ flutter test      # 32 pruebas
 
 - **Modelos tolerantes a nulos.** La API envía en `null` campos como `endPeriodDate`, `surface`, `population` o `postalCode`. Los modelos los declaran opcionales y la interfaz muestra "Sin dato". Las relaciones que la API siempre devuelve en `null` (`region`, `airports`, `maps`, etc.) no se modelan.
 - **UTF‑8 explícito.** `ApiClient` decodifica `response.bodyBytes` con `utf8`, sin depender de la cabecera `charset`, para que tildes y eñes se muestren bien.
-- **Imágenes de Wikimedia.** Wikimedia solo sirve miniaturas en anchos estándar, y varias URLs de la API piden anchos no permitidos (p. ej. `800px`), lo que produce un error 400. [`AppNetworkImage`](lib/widgets/app_network_image.dart) reescribe la miniatura a un ancho válido (330 px en listados, 960 px en detalle), prueba la imagen original como respaldo y envía un `User-Agent` identificable, como pide la política de Wikimedia. Si ninguna URL funciona, muestra un icono.
+- **Imágenes de Wikimedia.** Wikimedia solo sirve miniaturas en anchos estándar: varias URLs de la API piden anchos no permitidos (p. ej. `800px`, `100px`) y responden 400. [`AppNetworkImage`](lib/widgets/app_network_image.dart) reescribe la miniatura a un ancho válido (330 px en listados, 960 px en detalle) y deja la imagen original como respaldo. Además, Wikimedia limita la frecuencia de peticiones (HTTP 429), por lo que las descargas pasan por [`ImageService`](lib/services/image_service.dart), que:
+  - permite como máximo 3 descargas simultáneas;
+  - reintenta con espera creciente ante 429 o 5xx;
+  - pasa a la siguiente URL solo ante errores definitivos (4xx);
+  - guarda en memoria las imágenes descargadas;
+  - envía un `User-Agent` identificable, como pide la política de Wikimedia.
+
+  Si ninguna URL funciona, se muestra un icono.
 - **Datos incompletos en la API.** Algunos atractivos turísticos tienen imágenes que ya no existen (HTTP 404), y dos registros traen un texto en lugar de una URL. En esos casos se muestra el icono de respaldo.
 - **Detalle por id.** El detalle siempre consulta `/{Endpoint}/{id}` (ver [Rutas](#rutas-con-go_router)). Esto implica una petición adicional, pero hace que las rutas sean independientes y enlazables.
 
