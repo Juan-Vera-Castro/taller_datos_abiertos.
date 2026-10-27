@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'config/env_config.dart';
 import 'routes/app_router.dart';
+import 'themes/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,8 @@ class TallerApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'API Colombia',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       routerConfig: router,
     );
   }
