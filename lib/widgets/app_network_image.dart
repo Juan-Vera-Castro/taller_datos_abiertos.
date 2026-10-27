@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// Imagen remota con imagen de respaldo. Si una URL falla prueba la
-/// siguiente alternativa y, al agotarlas, muestra [placeholderIcon].
+import '../services/image_service.dart';
+
+/// Imagen remota con imagen de respaldo. Descarga con [ImageService]
+/// (reintentos y URLs alternativas) y, si nada funciona, muestra
+/// [placeholderIcon].
 class AppNetworkImage extends StatefulWidget {
   final String? url;
   final double? width;
@@ -12,6 +16,9 @@ class AppNetworkImage extends StatefulWidget {
   final int targetWidth;
   final IconData placeholderIcon;
 
+  /// Servicio de descarga; por defecto el compartido por toda la app.
+  final ImageService? service;
+
   const AppNetworkImage({
     super.key,
     required this.url,
@@ -20,12 +27,10 @@ class AppNetworkImage extends StatefulWidget {
     this.fit = BoxFit.cover,
     this.targetWidth = 330,
     this.placeholderIcon = Icons.image_outlined,
+    this.service,
   });
 
-  /// Wikimedia exige un User-Agent identificable.
-  static const Map<String, String> _headers = {
-    'User-Agent': 'TallerDatosAbiertos/1.0 (Flutter; proyecto educativo)',
-  };
+  ImageService get imageService => service ?? ImageService.instance;
 
   static final RegExp _thumbWidth = RegExp(r'/\d+px-');
   static final RegExp _wikimediaOriginal = RegExp(
@@ -67,13 +72,12 @@ class AppNetworkImage extends StatefulWidget {
 }
 
 class _AppNetworkImageState extends State<AppNetworkImage> {
-  late List<String> _candidates;
-  int _index = 0;
+  late Future<Uint8List?> _bytes;
 
   @override
   void initState() {
     super.initState();
-    _candidates = AppNetworkImage.candidatesFor(widget.url, widget.targetWidth);
+    _bytes = _load();
   }
 
   @override
@@ -81,35 +85,31 @@ class _AppNetworkImageState extends State<AppNetworkImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url ||
         oldWidget.targetWidth != widget.targetWidth) {
-      _candidates =
-          AppNetworkImage.candidatesFor(widget.url, widget.targetWidth);
-      _index = 0;
+      _bytes = _load();
     }
   }
 
-  void _tryNext(int failedIndex) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _index == failedIndex) setState(() => _index++);
-    });
-  }
+  Future<Uint8List?> _load() => widget.imageService.load(
+      AppNetworkImage.candidatesFor(widget.url, widget.targetWidth));
 
   @override
   Widget build(BuildContext context) {
-    if (_index >= _candidates.length) return _placeholder(context);
-
-    final index = _index;
-    return Image.network(
-      _candidates[index],
-      key: ValueKey(_candidates[index]),
-      headers: AppNetworkImage._headers,
-      width: widget.width,
-      height: widget.height,
-      fit: widget.fit,
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : _placeholder(context, loading: true),
-      errorBuilder: (context, error, stackTrace) {
-        _tryNext(index);
-        return _placeholder(context);
+    return FutureBuilder<Uint8List?>(
+      future: _bytes,
+      builder: (context, snapshot) {
+        final bytes = snapshot.data;
+        if (bytes != null) {
+          return Image.memory(
+            bytes,
+            width: widget.width,
+            height: widget.height,
+            fit: widget.fit,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) => _placeholder(context),
+          );
+        }
+        return _placeholder(context,
+            loading: snapshot.connectionState != ConnectionState.done);
       },
     );
   }
