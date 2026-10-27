@@ -83,6 +83,7 @@ class _FlagStripe extends StatelessWidget {
         width: 72,
         height: 8,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(flex: 2, child: ColoredBox(color: AppColors.yellow)),
             Expanded(child: ColoredBox(color: AppColors.blue)),
